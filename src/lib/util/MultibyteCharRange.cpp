@@ -70,7 +70,7 @@ bool MultibyteCharRange::addRange(size_t sz, unsigned char b, unsigned char e)
       return false;
    }
    if (e < b) {
-      std::swap<unsigned char>(b, e);
+      std::swap(b, e);
    }
 
    // check overlapping
