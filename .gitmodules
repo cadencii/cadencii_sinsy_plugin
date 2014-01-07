@@ -1,0 +1,3 @@
+[submodule "refs/hts-engine"]
+	path = refs/hts-engine
+	url = git@github.com:kbinani/hts-engine.git
