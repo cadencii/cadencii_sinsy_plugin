@@ -1,3 +1,6 @@
 [submodule "refs/hts-engine"]
 	path = refs/hts-engine
 	url = git@github.com:kbinani/hts-engine.git
+[submodule "refs/gtest"]
+	path = refs/gtest
+	url = https://github.com/kgcd/gtest.git
