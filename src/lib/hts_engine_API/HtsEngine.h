@@ -104,9 +104,11 @@ private:
    //! clear
    void clear();
 
+public:
    //! hts_engine API
    HTS_Engine engine;
 
+private:
    //! default frame period
    size_t fperiod;
 };
