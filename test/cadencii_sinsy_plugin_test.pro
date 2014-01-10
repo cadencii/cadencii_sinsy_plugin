@@ -11,11 +11,6 @@ INCLUDEPATH += \
 
 DEFINES += GTEST_HAS_TR1_TUPLE=0
 
-mac {
-    INCLUDEPATH += /usr/local/include
-    LIBS += -L/usr/local/lib
-}
-
 SOURCES += \
     $$PWD/../refs/gtest/src/gtest-all.cc \
     $$PWD/../refs/gtest/src/gtest_main.cc \

@@ -6,7 +6,22 @@ CONFIG += staticlib
 
 INCLUDEPATH += $$PWD/hts-engine/src/include
 
+TARGET = HTSEngine
+
 win32:LIBS += -lwinmm
+
+debug: {
+    BUILD_KIND = debug
+} else {
+    BUILD_KIND = release
+}
+CONFIG(x86_64): {
+    ARCH = x64
+} else {
+    ARCH = x86
+}
+
+DESTDIR = $$PWD/hts-engine-build/$$ARCH/$$BUILD_KIND
 
 SOURCES += \
     $$PWD/hts-engine/src/lib/HTS_audio.c \

@@ -18,16 +18,21 @@ INCLUDEPATH += \
     $$PWD/../cadencii-nt/ \
     $$PWD/refs/hts-engine/src/include
 
-mac:LIBS += -L/usr/local/lib -lHTSEngine
+LIBS += -lHTSEngine
 
-win32 {
-    CONFIG(release, debug|release): {
-        LIBS += -L$$PWD/refs/hts-engine-build/$$QMAKE_TARGET.arch/release
-    } else {
-        LIBS += -L$$PWD/refs/hts-engine-build/$$QMAKE_TARGET.arch/debug
-    }
-    LIBS += -lhts-engine -lwinmm
+CONFIG(x86_64): {
+    ARCH = x64
+} else {
+    ARCH = x86
 }
+
+debug: {
+    LIBS += -L$$PWD/refs/hts-engine-build/$$ARCH/debug
+} else {
+    LIBS += -L$$PWD/refs/hts-engine-build/$$ARCH/release
+}
+
+win32: LIBS += -lwinmm
 
 SOURCES += \
     $$PWD/src/lib/converter/ConfGroup.cpp \
