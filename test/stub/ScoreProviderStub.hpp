@@ -3,6 +3,10 @@
 class ScoreProviderStub : public cadencii::singing::IScoreProvider
 {
 public:
+    ScoreProviderStub()
+        : last_provided_(0)
+    {}
+
     bool next(std::shared_ptr<cadencii::singing::IScoreEvent> & out_event,
     	 	  cadencii::singing::tick_t & out_delta) override
     {

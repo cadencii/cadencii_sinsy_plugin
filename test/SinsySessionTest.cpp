@@ -52,12 +52,16 @@ public:
 };
 
 
-TEST(SinsySession, createFirstSessionTest)
+TEST(SinsySession, createFirstSessionWithDefaultTempoTest)
 {
     using namespace cadencii::singing;
 
     auto provider = std::make_shared<ScoreProviderStub>();
-    provider->addToPool(std::make_shared<TempoEvent>(120.0), 0);
+
+    //        |----.----.----.----|----.----.----.----|-- ....
+    // TEMPO: ^-120
+    //  NOTE: [rest              ][a@C4]
+
     provider->addToPool(std::make_shared<NoteEvent>("a", 60, 480), 1920);
 
     auto stub = SinsySessionStub::createSinsySessionStub(provider.get());
@@ -70,4 +74,45 @@ TEST(SinsySession, createFirstSessionTest)
     EXPECT_EQ("changeTempo:120", result[0]);
     EXPECT_EQ("addNote:[rest(3840)  (tie:) (slur:)]", result[1]);
     EXPECT_EQ("addNote:[pitch(960) C4 a (tie:) (slur:)]", result[2]);
+}
+
+TEST(SinsySession, createFirstSession)
+{
+    using namespace cadencii::singing;
+
+    auto provider = std::make_shared<ScoreProviderStub>();
+
+    //        |----.----.----.----|----.----.----.----|-- ....
+    // TEMPO: ^-121               ^-60      ^-30      ^-15
+    //  NOTE:           [Hello@C3     ]          [a@C4]
+
+    provider->addToPool(std::make_shared<TempoEvent>(121), 0);
+    provider->addToPool(std::make_shared<NoteEvent>("Hello", 48, 1440), 960);
+    provider->addToPool(std::make_shared<TempoEvent>(60), 1920);
+    provider->addToPool(std::make_shared<TempoEvent>(30), 2880);
+    provider->addToPool(std::make_shared<NoteEvent>("a", 60, 480), 3360);
+    provider->addToPool(std::make_shared<TempoEvent>(15), 3840);
+
+    auto stub = SinsySessionStub::createSinsySessionStub(provider.get());
+
+    auto writable = std::make_shared<ScoreWritableStub>();
+    stub->writeScore(*writable);
+    std::vector<std::string> result = writable->getResult();
+
+    std::vector<std::string> expected;
+    expected.push_back("changeTempo:121");
+    expected.push_back("addNote:[rest(1920)  (tie:) (slur:)]");
+    expected.push_back("addNote:[pitch(1920) C3 Hello (tie:Start) (slur:)]");
+    expected.push_back("changeTempo:60");
+    expected.push_back("addNote:[pitch(960) C3 Hello (tie:Stop) (slur:)]");
+    expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
+    expected.push_back("changeTempo:30");
+    expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
+    expected.push_back("addNote:[pitch(960) C4 a (tie:) (slur:)]");
+    expected.push_back("changeTempo:15");
+
+    EXPECT_EQ(expected.size(), result.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+        EXPECT_EQ(expected[i], result[i]);
+    }
 }

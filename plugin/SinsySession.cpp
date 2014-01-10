@@ -11,8 +11,9 @@ namespace plugin {
 
 struct SinsySession::Impl
 {
+    typedef cadencii::singing::tick_t tick_t;
     typedef std::shared_ptr<cadencii::singing::IScoreEvent> event_t;
-    typedef std::multimap<cadencii::singing::tick_t, event_t> event_map_t;
+    typedef std::multimap<tick_t, event_t> event_map_t;
 
 public:
     Impl(cadencii::singing::IScoreProvider * provider,
@@ -108,60 +109,152 @@ public:
     }
 
 private:
+    struct NextNote
+    {
+        NextNote(sinsy::Note const& note, tick_t tick)
+            : note_(note)
+            , start_tick_(tick)
+        {}
+
+        sinsy::Note note_;
+        tick_t start_tick_;
+    };
+
+    std::shared_ptr<NextNote>
+    addEvent(event_t const& event,
+             tick_t tick,
+             std::shared_ptr<NextNote> const& previous_next_note)
+    {
+        assert(previous_next_note.get());
+
+        if (previous_next_note->note_.isRest()) {
+            return addEventAfterRest(event, tick, previous_next_note);
+        } else {
+            return addEventAfterNote(event, tick, previous_next_note);
+        }
+    }
+
+    std::shared_ptr<NextNote>
+    createNextRest(tick_t start_tick)
+    {
+        sinsy::Note rest;
+        rest.setRest(true);
+        auto result = std::make_shared<NextNote>(rest, start_tick);
+        return result;
+    }
+
+    std::shared_ptr<NextNote>
+    createNextNote(tick_t start_tick, sinsy::Note const& note)
+    {
+        return std::make_shared<NextNote>(note, start_tick);
+    }
+
+    void createNote(sinsy::Note & note, cadencii::singing::NoteEvent const* source)
+    {
+        int const note_number = source->noteNumber();
+        note.setRest(false);
+        note.setLyric(source->lyric());
+        int const octave = VSQ_NS::NoteNumberUtil::getNoteOctave(note_number) + 1;
+        int const step = (note_number % STEP_NUM_ + STEP_NUM_) % STEP_NUM_;
+        sinsy::Pitch pitch(step, octave);
+        note.setPitch(pitch);
+        note.setDuration(source->duration() * TICK_SCALE_);
+    }
+
+    std::shared_ptr<NextNote>
+    addEventAfterRest(event_t const& event, tick_t tick, std::shared_ptr<NextNote> const& previous_next_note)
+    {
+        using namespace cadencii::singing;
+
+        if (tick > previous_next_note->start_tick_) {
+            size_t const duration = tick - previous_next_note->start_tick_;
+
+            sinsy::Note note(previous_next_note->note_);
+            note.setDuration(duration);
+            score_.addNote(note);
+        }
+
+        NoteEvent * note_event = dynamic_cast<NoteEvent *>(event.get());
+        TempoEvent * tempo_event = dynamic_cast<TempoEvent *>(event.get());
+
+        if (note_event) {
+            sinsy::Note note;
+            createNote(note, note_event);
+            auto r = createNextNote(tick, note);
+            return r;
+        } else if (tempo_event) {
+            score_.changeTempo(tempo_event->tempo());
+            return createNextRest(tick);
+        } else {
+            return previous_next_note;
+        }
+    }
+
+    std::shared_ptr<NextNote>
+    addEventAfterNote(event_t const& event, tick_t tick, std::shared_ptr<NextNote> const& previous_next_note)
+    {
+        using namespace cadencii::singing;
+
+        tick_t const end_tick = previous_next_note->start_tick_ + previous_next_note->note_.getDuration();
+
+        NoteEvent * note_event = dynamic_cast<NoteEvent *>(event.get());
+        TempoEvent * tempo_event = dynamic_cast<TempoEvent *>(event.get());
+        assert(note_event || tempo_event);
+
+        if (tick < end_tick) {
+            if (tick > previous_next_note->start_tick_) {
+                sinsy::Note note(previous_next_note->note_);
+                size_t const duration = tick - previous_next_note->start_tick_;
+                note.setDuration(duration);
+                note.setTieStart(true);
+                score_.addNote(note);
+            }
+            if (note_event) {
+                sinsy::Note next_note;
+                createNote(next_note, note_event);
+                return createNextNote(tick, next_note);
+            } else if (tempo_event) {
+                score_.changeTempo(tempo_event->tempo());
+                sinsy::Note next_note(previous_next_note->note_);
+                next_note.setDuration(previous_next_note->note_.getDuration() - (tick - previous_next_note->start_tick_));
+                return createNextNote(tick, next_note);
+            }
+        } else if (end_tick <= tick) {
+            sinsy::Note note(previous_next_note->note_);
+            score_.addNote(note);
+            if (end_tick < tick) {
+                size_t const duration = tick - end_tick;
+                sinsy::Note rest;
+                rest.setRest(true);
+                rest.setDuration(duration);
+                score_.addNote(rest);
+            }
+            if (note_event) {
+                sinsy::Note next_note;
+                createNote(next_note, note_event);
+                return createNextNote(tick, next_note);
+            } else if (tempo_event) {
+                score_.changeTempo(tempo_event->tempo());
+                return createNextRest(tick);
+            }
+        }
+
+        return previous_next_note;
+    }
+
     void initWithEvents(event_map_t const& events)
     {
         using namespace cadencii::singing;
 
         tick_t last_tick = 0;
 
-        struct NextNote
-        {
-            sinsy::Note note_;
-            tick_t start_tick_;
-        };
-
-        std::shared_ptr<NextNote> next_note;
-        next_note.reset(new NextNote());
-        next_note->note_.setRest(true);
-        next_note->start_tick_ = 0;
+        std::shared_ptr<NextNote> next_note = createNextRest(0);
 
         for (auto it = events.begin(); it != events.end(); ++it) {
-            tick_t tick = it->first;
+            tick_t tick = it->first * TICK_SCALE_;
             event_t event = it->second;
-            NoteEvent * note_event = dynamic_cast<NoteEvent *>(event.get());
-            TempoEvent * tempo_event = dynamic_cast<TempoEvent *>(event.get());
-            if (note_event) {
-                if (tick != last_tick) {
-                    sinsy::Note note(next_note->note_);
-                    size_t const duration = tick - next_note->start_tick_;
-                    note.setDuration(duration * TICK_SCALE_);
-                    score_.addNote(note);
-                }
-
-                int const note_number = note_event->noteNumber();
-
-                next_note.reset(new NextNote());
-                next_note->note_.setRest(false);
-                next_note->note_.setLyric(note_event->lyric());
-                int const octave = VSQ_NS::NoteNumberUtil::getNoteOctave(note_number) + 1;
-                int const step = (note_number % STEP_NUM_ + STEP_NUM_) % STEP_NUM_;
-                sinsy::Pitch pitch(step, octave);
-                next_note->note_.setPitch(pitch);
-                next_note->note_.setDuration(note_event->duration() * TICK_SCALE_);
-                next_note->start_tick_ = tick;
-
-                last_tick = tick;
-            } else if (tempo_event) {
-                if (tick != last_tick) {
-                    sinsy::Note note(next_note->note_);
-                    size_t const duration = tick - next_note->start_tick_;
-                    note.setDuration(duration * TICK_SCALE_);
-                    note.setTieStart(true);
-                    score_.addNote(note);
-                }
-                score_.changeTempo(tempo_event->tempo());
-                last_tick = tick;
-            }
+            next_note = addEvent(event, tick, next_note);
+            last_tick = tick;
         }
 
         if (next_note && !next_note->note_.isRest()) {
@@ -185,10 +278,9 @@ private:
 
         tick_t current = 0;
         event_t event;
-        tick_t delta;
+        tick_t delta = 0;
         while (provider->next(event, delta)) {
             current += delta;
-            tick_t const tick = current;
             result.insert(std::make_pair(current, event));
         }
 
@@ -267,6 +359,7 @@ private:
     static int const TICK_SCALE_ = 2;
     static int const STEP_NUM_ = 12;
 };
+
 
 SinsySession::SinsySession(
         cadencii::singing::IScoreProvider * provider,
