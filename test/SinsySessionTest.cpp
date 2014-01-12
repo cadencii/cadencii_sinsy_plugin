@@ -49,6 +49,11 @@ public:
                                           dictionary_path));
         return result;
     }
+
+    static double getMinIntervalBetweenSessions()
+    {
+        return MIN_SECONDS_BETWEEN_SESSIONS_;
+    }
 };
 
 
@@ -74,6 +79,11 @@ TEST(SinsySession, createFirstSessionWithDefaultTempoTest)
     EXPECT_EQ("changeTempo:120", result[0]);
     EXPECT_EQ("addNote:[rest(3840)  (tie:) (slur:)]", result[1]);
     EXPECT_EQ("addNote:[pitch(960) C4 a (tie:) (slur:)]", result[2]);
+
+    // session continues to "last note end time" + getMinIntervalBetweenSessions() sec.
+    size_t const expected = (size_t)((2.5 + SinsySessionStub::getMinIntervalBetweenSessions()) * 44100);
+    size_t const actual = stub->getSessionLength();
+    EXPECT_EQ(expected, actual);
 }
 
 TEST(SinsySession, createFirstSession)
@@ -99,20 +109,28 @@ TEST(SinsySession, createFirstSession)
     stub->writeScore(*writable);
     std::vector<std::string> result = writable->getResult();
 
-    std::vector<std::string> expected;
-    expected.push_back("changeTempo:121");
-    expected.push_back("addNote:[rest(1920)  (tie:) (slur:)]");
-    expected.push_back("addNote:[pitch(1920) C3 Hello (tie:Start) (slur:)]");
-    expected.push_back("changeTempo:60");
-    expected.push_back("addNote:[pitch(960) C3 Hello (tie:Stop) (slur:)]");
-    expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
-    expected.push_back("changeTempo:30");
-    expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
-    expected.push_back("addNote:[pitch(960) C4 a (tie:) (slur:)]");
-    expected.push_back("changeTempo:15");
+    {
+        std::vector<std::string> expected;
+        expected.push_back("changeTempo:121");
+        expected.push_back("addNote:[rest(1920)  (tie:) (slur:)]");
+        expected.push_back("addNote:[pitch(1920) C3 Hello (tie:Start) (slur:)]");
+        expected.push_back("changeTempo:60");
+        expected.push_back("addNote:[pitch(960) C3 Hello (tie:Stop) (slur:)]");
+        expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
+        expected.push_back("changeTempo:30");
+        expected.push_back("addNote:[rest(960)  (tie:) (slur:)]");
+        expected.push_back("addNote:[pitch(960) C4 a (tie:) (slur:)]");
+        expected.push_back("changeTempo:15");
 
-    EXPECT_EQ(expected.size(), result.size());
-    for (size_t i = 0; i < expected.size(); ++i) {
-        EXPECT_EQ(expected[i], result[i]);
+        EXPECT_EQ(expected.size(), result.size());
+        for (size_t i = 0; i < expected.size(); ++i) {
+            EXPECT_EQ(expected[i], result[i]);
+        }
+    }
+
+    {
+        size_t const expected = (size_t)((1920 / (8 * 121.0) + 960 / (8 * 60.0) + 960 / (8 * 30.0) + SinsySessionStub::getMinIntervalBetweenSessions()) * 44100);
+        size_t const actual = stub->getSessionLength();
+        EXPECT_EQ(expected, actual);
     }
 }

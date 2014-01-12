@@ -9,6 +9,8 @@
 namespace cadencii {
 namespace plugin {
 
+double const SinsySession::MIN_SECONDS_BETWEEN_SESSIONS_ = 1.0;
+
 struct SinsySession::Impl
 {
     typedef cadencii::singing::tick_t tick_t;
@@ -27,6 +29,7 @@ public:
         , voices_(voices)
         , sample_rate_(sample_rate)
         , provider_(provider)
+        , session_samples_(0)
     {
         using namespace cadencii::singing;
 
@@ -45,6 +48,7 @@ public:
         , voices_(voices)
         , sample_rate_(sample_rate)
         , provider_(provider)
+        , session_samples_(0)
     {
         engine_.load(voices_);
     }
@@ -106,6 +110,11 @@ public:
     void doWriteScore(sinsy::IScoreWritable & w) const
     {
         score_.write(w);
+    }
+
+    size_t getSessionLength() const
+    {
+        return session_samples_;
     }
 
 private:
@@ -265,6 +274,8 @@ private:
         bool const find_result = getLastTempo(events, tempo);
         assert(find_result);
         last_tempo_ = tempo;
+
+        session_samples_ = static_cast<size_t>(sample_rate_ * calculateSessionLength(events));
     }
 
     static event_map_t takeEvents(cadencii::singing::IScoreProvider * provider,
@@ -344,6 +355,60 @@ private:
         return result;
     }
 
+    static std::map<tick_t, double> extractTempoTable(event_map_t const& events)
+    {
+        using namespace cadencii::singing;
+
+        std::map<tick_t, double> result;
+        std::for_each(std::begin(events), std::end(events), [&result](event_map_t::value_type const& v) {
+            tick_t const tick = v.first;
+            event_t const event = v.second;
+            TempoEvent * tempo = dynamic_cast<TempoEvent *>(event.get());
+            if (tempo) {
+                result[tick] = tempo->tempo();
+            }
+        });
+        return result;
+    }
+
+    static double getSecondFromTick(std::map<tick_t, double> const& tempo_table, tick_t tick)
+    {
+        double total_second = 0.0;
+        tick_t last_tick = 0;
+        double last_tempo = tempo_table.at(0);
+        for (auto it = tempo_table.begin(); it->first < tick; ++it) {
+            tick_t const t = it->first;
+            double const tempo = it->second;
+            total_second += (t - last_tick) / (8 * last_tempo);
+            last_tick = t;
+            last_tempo = tempo;
+        }
+        total_second += (tick - last_tick) / (8 * last_tempo);
+        return total_second;
+    }
+
+    //!
+    //! \brief calculateSessionLength   Get the length of the session in seconds.
+    //! \param events
+    //! \return
+    static double calculateSessionLength(event_map_t const& events)
+    {
+        using namespace cadencii::singing;
+
+        std::map<tick_t, double> tempo_table = extractTempoTable(events);
+        auto last_note = std::find_if(events.rbegin(), events.rend(), [](event_map_t::value_type const& v) {
+            NoteEvent * note = dynamic_cast<NoteEvent *>(v.second.get());
+            return note != nullptr;
+        });
+        double last_note_end_sec = 0.0;
+        if (last_note != events.rend()) {
+            NoteEvent * last_note_event = dynamic_cast<NoteEvent *>(last_note->second.get());
+            tick_t const last_note_end = last_note->first + last_note_event->duration();
+            last_note_end_sec = getSecondFromTick(tempo_table, last_note_end);
+        }
+        return last_note_end_sec + SinsySession::MIN_SECONDS_BETWEEN_SESSIONS_;
+    }
+
 private:
     sinsy::ScoreDoctor score_;
     sinsy::HtsEngine engine_;
@@ -355,6 +420,7 @@ private:
     cadencii::singing::IScoreProvider * const provider_;
     double last_tempo_;
     size_t synthesized_samples_;
+    size_t session_samples_;
 
     static int const TICK_SCALE_ = 2;
     static int const STEP_NUM_ = 12;
@@ -408,6 +474,12 @@ void SinsySession::takeSynthesizeResult(std::vector<double> & buffer, size_t off
 void SinsySession::writeScore(sinsy::IScoreWritable &w) const
 {
     impl_->doWriteScore(w);
+}
+
+
+size_t SinsySession::getSessionLength() const
+{
+    return impl_->getSessionLength();
 }
 
 }

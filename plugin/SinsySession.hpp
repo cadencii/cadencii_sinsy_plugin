@@ -27,6 +27,11 @@ public:
 
     void takeSynthesizeResult(std::vector<double> & buffer, size_t offset, size_t length);
 
+    //!
+    //! \brief getSessionLength     Get the sample length of this session.
+    //! \return
+    size_t getSessionLength() const;
+
 protected:
     SinsySession(cadencii::singing::IScoreProvider * provider,
                  int sample_rate,
@@ -35,6 +40,9 @@ protected:
                  std::vector<std::string> const& voices);
 
     virtual void writeScore(sinsy::IScoreWritable &) const;
+
+protected:
+    static double const MIN_SECONDS_BETWEEN_SESSIONS_;
 
 private:
     struct Impl;
