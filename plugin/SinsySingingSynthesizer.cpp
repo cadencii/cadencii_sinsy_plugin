@@ -7,8 +7,93 @@ double const SinsySingingSynthesizer::TEMPO_ = 120.0;
 int const SinsySingingSynthesizer::TICK_ORDER_ = 2;
 double const SinsySingingSynthesizer::WAVEFORM_MAX_AMPLITUDE = 32768.0;
 
+struct SinsySingingSynthesizer::Impl
+{
+    Impl()
+        : language_initialized_(false)
+        , dictionary_initialized_(false)
+    {}
+
+    ~Impl()
+    {}
+
+    void render(double * left, double * right, size_t length)
+    {
+        //TODO:
+    }
+
+    bool setConfig(std::string const& key, std::string const& value)
+    {
+        if (key == CONFIG_KEY_DICTIONARY_PATH) {
+            dictionary_ = value;
+            dictionary_initialized_ = true;
+            return initializeConverter();
+        } else if (key == CONFIG_KEY_HTVOICE_PATH) {
+            voices_.clear();
+            voices_ = split(value, CONFIG_KEY_HTVOICE_PATH_DELIMITER);
+        } else if (key == CONFIG_KEY_LANGUAGE) {
+            language_ = value;
+            language_initialized_ = true;
+            return initializeConverter();
+        } else {
+            return false;
+        }
+    }
+
+private:
+    bool initializeConverter()
+    {
+        if (dictionary_initialized_ && language_initialized_) {
+            converter_.setLanguages(language_, dictionary_);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    std::vector<std::string>
+    split(std::string const& str, std::string const& delim)
+    {
+        std::vector<std::string> res;
+        size_t current = 0, found, delimlen = delim.size();
+        while((found = str.find(delim, current)) != std::string::npos) {
+            res.push_back(std::string(str, current, found - current));
+            current = found + delimlen;
+        }
+        res.push_back(std::string(str, current, str.size() - current));
+        return res;
+    }
+
+    std::vector<std::string> voices_;
+
+    std::string language_;
+    bool language_initialized_;
+
+    std::string dictionary_;
+    bool dictionary_initialized_;
+
+    sinsy::Converter converter_;
+
+    std::shared_ptr<SinsySession> current_session_;
+    std::shared_ptr<cadencii::singing::IScoreProvider> provider_;
+
+    static std::string const CONFIG_KEY_HTVOICE_PATH;
+    static std::string const CONFIG_KEY_DICTIONARY_PATH;
+    static std::string const CONFIG_KEY_LANGUAGE;
+    static std::string const CONFIG_KEY_HTVOICE_PATH_DELIMITER;
+};
+
+
+static std::string const CONFIG_KEY_DOMAIN = "com.github.cadencii.sinsy_plugin.";
+std::string const SinsySingingSynthesizer::Impl::CONFIG_KEY_HTVOICE_PATH = CONFIG_KEY_DOMAIN + std::string("htvoice");
+std::string const SinsySingingSynthesizer::Impl::CONFIG_KEY_DICTIONARY_PATH = CONFIG_KEY_DOMAIN + std::string("dictionary");
+std::string const SinsySingingSynthesizer::Impl::CONFIG_KEY_LANGUAGE = CONFIG_KEY_DOMAIN + std::string("language");
+std::string const SinsySingingSynthesizer::Impl::CONFIG_KEY_HTVOICE_PATH_DELIMITER = "\n";
+
+
 SinsySingingSynthesizer::SinsySingingSynthesizer(int sample_rate)
     : cadencii::singing::ISingingSynthesizer(sample_rate)
+    , impl_(std::make_shared<Impl>())
 {}
 
 
@@ -18,121 +103,14 @@ SinsySingingSynthesizer::~SinsySingingSynthesizer()
 
 void SinsySingingSynthesizer::operator () (double * left, double * right, size_t length)
 {
-    if (!provider_) {
-        return;
-    }
-
+    impl_->render(left, right, length);
 }
 
 
-void SinsySingingSynthesizer::setConfig(std::string const& config)
+bool SinsySingingSynthesizer::setConfig(std::string const& key, std::string const& value)
 {
-    //TODO:
-    voices_.clear();
-    voices_.push_back("/Users/kbinani/Downloads/hts_voice_nitech_jp_song070_f001-0.90/nitech_jp_song070_f001.htsvoice");
-    std::string language = "j";
-    std::string dictionary = "/Users/kbinani/Documents/github/kbinani/sinsy/src/dic";
-    converter_.setLanguages(language, dictionary);
+    return impl_->setConfig(key, value);
 }
-
-#if 0
-void setTrack(VSQ_NS::Track const& track, VSQ_NS::TempoList const& tempo_list) override
-{
-    using namespace VSQ_NS;
-    score_.clear();
-    score_.changeTempo(TEMPO);
-    Event::List const* const events = track.events();
-    int size = events->size();
-    tick_t last_clock = 0;
-    for (int i = 0; i < size; ++i) {
-        Event const* const event = events->get(i);
-        if (event->type != EventType::NOTE) {
-            continue;
-        }
-        if (last_clock != event->clock) {
-            sinsy::Note rest;
-            rest.setRest(true);
-            rest.setDuration((event->clock - last_clock) * TICK_ORDER_);
-            score_.addNote(rest);
-        }
-        sinsy::Note note;
-        note.setRest(false);
-        note.setDuration(event->getLength() * TICK_ORDER_);
-        std::string lyric("あ");
-        if (event->lyricHandle.getLyricCount() > 0) {
-            lyric = event->lyricHandle.getLyricAt(0).phrase;
-        }
-        note.setLyric(lyric);
-        int const octave = NoteNumberUtil::getNoteOctave(event->note) + 1;
-        int const step = (event->note % STEP_NUM + STEP_NUM) % STEP_NUM;
-        sinsy::Pitch pitch(step, octave);
-        note.setPitch(pitch);
-        score_.addNote(note);
-        last_clock = event->clock + event->getLength();
-    }
-}
-
-void setReceiver(std::shared_ptr<cadencii::audio::AudioReceiver> const& receiver) override
-{
-    receiver_ = receiver;
-}
-
-void start(uint64_t length) override
-{
-    sinsy::HtsEngine engine;
-    std::vector<std::string> voices {"/Users/kbinani/Downloads/hts_voice_nitech_jp_song070_f001-0.90/nitech_jp_song070_f001.htsvoice"};
-    if (!engine.load(voices)) {
-        std::cout << "start; failed to load voices" << std::endl;
-    }
-
-    sinsy::Converter converter;
-    std::string language = "j";
-    std::string dictionary = "/Users/kbinani/Documents/github/kbinani/sinsy/src/dic";
-    if (!converter.setLanguages(language, dictionary)) {
-        std::cout << "start; fail in converter.setLanguages" << std::endl;
-    }
-    sinsy::LabelMaker labelMaker(converter);
-    labelMaker << score_;
-    labelMaker.fix();
-    sinsy::LabelStrings label;
-    labelMaker.outputLabel(label, false, 1, 2);
-
-    HTS_Engine_set_sampling_frequency(&engine.engine, sample_rate_);
-
-    if (HTS_Engine_get_nvoices(&engine.engine) == 0 || label.size() == 0) {
-       return;
-    }
-
-    HTS_Engine_set_audio_buff_size(&engine.engine, 0);
-
-    bool result = true;
-    if (HTS_Engine_synthesize_from_strings(&engine.engine, (char **)label.getData(), label.size()) != TRUE) {
-        result = false;
-    }
-
-    size_t const buffer_length = 1024;
-    std::vector<double> waveform_buffer ;
-    waveform_buffer.resize(buffer_length);
-    std::fill(std::begin(waveform_buffer), std::end(waveform_buffer), 0.0);
-
-    size_t const num_samples = (std::min)(HTS_Engine_get_nsamples(&engine.engine), static_cast<size_t>(length));
-    size_t current_sample = 0;
-    size_t remain_samples = num_samples;
-    while (remain_samples > 0) {
-        size_t const amount = (std::min)(remain_samples, buffer_length);
-        for (size_t i = 0; i < amount; ++i, ++current_sample, --remain_samples) {
-            double x = engine.engine.gss.gspeech[current_sample];
-            waveform_buffer[i] = x / WAVEFORM_MAX_AMPLITUDE;
-        }
-        receiver_->push(waveform_buffer.data(), waveform_buffer.data(), amount, 0);
-    }
-
-    size_t const x = HTS_Engine_get_audio_buff_size(&engine.engine);
-    HTS_Engine_set_audio_buff_size(&engine.engine, x);
-
-    HTS_Engine_refresh(&engine.engine);
-}
-#endif
 
 }
 }

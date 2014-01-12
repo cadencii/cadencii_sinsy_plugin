@@ -15,12 +15,11 @@ public:
 
     void operator () (double * left, double * right, size_t length) override;
 
-    void setConfig(std::string const& config) override;
+    bool setConfig(std::string const& key, std::string const& value) override;
 
 private:
-    std::vector<std::string> voices_;
-    sinsy::Converter converter_;
-    std::shared_ptr<SinsySession> current_session_;
+    struct Impl;
+    std::shared_ptr<Impl> impl_;
 
     static double const TEMPO_;
     static int const TICK_ORDER_;
