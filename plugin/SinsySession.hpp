@@ -25,12 +25,18 @@ public:
 
     void synthesize();
 
-    void takeSynthesizeResult(std::vector<double> & buffer, size_t offset, size_t length);
+    void takeSynthesizeResult(std::vector<double> & buffer, size_t length);
 
     //!
     //! \brief getSessionLength     Get the sample length of this session.
     //! \return
     size_t getSessionLength() const;
+
+    //!
+    //! \brief getRemainingSessionLength    Get remaining synthesized result samples.
+    //!                                     Equals to "getSessionLength() - total takeSynthesizeResult'ed samples".
+    //! \return
+    size_t getRemainingSessionLength() const;
 
 protected:
     SinsySession(cadencii::singing::IScoreProvider * provider,

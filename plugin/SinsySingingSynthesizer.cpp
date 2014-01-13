@@ -9,8 +9,9 @@ double const SinsySingingSynthesizer::WAVEFORM_MAX_AMPLITUDE = 32768.0;
 
 struct SinsySingingSynthesizer::Impl
 {
-    Impl()
-        : language_initialized_(false)
+    explicit Impl(SinsySingingSynthesizer * self)
+        : self_(self)
+        , language_initialized_(false)
         , dictionary_initialized_(false)
     {}
 
@@ -19,7 +20,36 @@ struct SinsySingingSynthesizer::Impl
 
     void render(double * left, double * right, size_t length)
     {
-        //TODO:
+        using namespace cadencii::singing;
+
+        size_t remaining = length;
+        size_t processed = 0;
+        std::vector<double> buffer;
+        size_t const LEN = 1024;
+        while (remaining > 0) {
+            if (!current_session_) {
+                std::shared_ptr<IScoreProvider> provider = self_->getProvider();
+                current_session_.reset(new SinsySession(provider.get(),
+                                                        self_->sampleRate(),
+                                                        SinsySingingSynthesizer::TEMPO_,
+                                                        voices_,
+                                                        language_,
+                                                        dictionary_));
+                current_session_->synthesize();
+            }
+            size_t const amount = (std::min)({remaining, LEN, current_session_->getRemainingSessionLength()});
+            current_session_->takeSynthesizeResult(buffer, amount);
+            for (size_t i = 0; i < amount; ++i, ++processed) {
+                double const v = buffer[i];
+                left[processed] = v;
+                right[processed] = v;
+            }
+            remaining -= amount;
+            if (current_session_->getRemainingSessionLength() == 0) {
+                current_session_ = current_session_->createNextSession();
+                current_session_->synthesize();
+            }
+        }
     }
 
     bool setConfig(std::string const& key, std::string const& value)
@@ -31,6 +61,7 @@ struct SinsySingingSynthesizer::Impl
         } else if (key == CONFIG_KEY_HTVOICE_PATH) {
             voices_.clear();
             voices_ = split(value, CONFIG_KEY_HTVOICE_PATH_DELIMITER);
+            return true;
         } else if (key == CONFIG_KEY_LANGUAGE) {
             language_ = value;
             language_initialized_ = true;
@@ -64,6 +95,7 @@ private:
         return res;
     }
 
+    SinsySingingSynthesizer * const self_;
     std::vector<std::string> voices_;
 
     std::string language_;
@@ -75,7 +107,6 @@ private:
     sinsy::Converter converter_;
 
     std::shared_ptr<SinsySession> current_session_;
-    std::shared_ptr<cadencii::singing::IScoreProvider> provider_;
 
     static std::string const CONFIG_KEY_HTVOICE_PATH;
     static std::string const CONFIG_KEY_DICTIONARY_PATH;
@@ -93,7 +124,7 @@ std::string const SinsySingingSynthesizer::Impl::CONFIG_KEY_HTVOICE_PATH_DELIMIT
 
 SinsySingingSynthesizer::SinsySingingSynthesizer(int sample_rate)
     : cadencii::singing::ISingingSynthesizer(sample_rate)
-    , impl_(std::make_shared<Impl>())
+    , impl_(std::make_shared<Impl>(this))
 {}
 
 
@@ -110,6 +141,12 @@ void SinsySingingSynthesizer::operator () (double * left, double * right, size_t
 bool SinsySingingSynthesizer::setConfig(std::string const& key, std::string const& value)
 {
     return impl_->setConfig(key, value);
+}
+
+std::shared_ptr<cadencii::singing::IScoreProvider>
+SinsySingingSynthesizer::getProvider()
+{
+    return provider_;
 }
 
 }

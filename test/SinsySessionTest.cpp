@@ -86,6 +86,7 @@ TEST(SinsySession, createFirstSessionWithDefaultTempoTest)
     EXPECT_EQ(expected, actual);
 }
 
+
 TEST(SinsySession, createFirstSession)
 {
     using namespace cadencii::singing;

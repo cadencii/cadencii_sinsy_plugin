@@ -15,6 +15,7 @@ SOURCES += \
     $$PWD/../refs/gtest/src/gtest-all.cc \
     $$PWD/../refs/gtest/src/gtest_main.cc \
     $$PWD/SinsySessionTest.cpp \
+    $$PWD/SinsySingingSynthesizerTest.cpp \
 
 HEADERS += \
     $$PWD/stub/ScoreProviderStub.hpp \

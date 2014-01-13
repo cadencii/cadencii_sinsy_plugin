@@ -13,9 +13,13 @@ public:
 
     virtual ~SinsySingingSynthesizer();
 
+    bool setConfig(std::string const& key, std::string const& value) override;
+
+protected:
     void operator () (double * left, double * right, size_t length) override;
 
-    bool setConfig(std::string const& key, std::string const& value) override;
+    std::shared_ptr<cadencii::singing::IScoreProvider>
+    getProvider();
 
 private:
     struct Impl;

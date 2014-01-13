@@ -5,6 +5,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 CONFIG += c++11
 INCLUDEPATH += \
+    $$PWD/src \
     $$PWD/src/lib/converter \
     $$PWD/src/lib/hts_engine_API \
     $$PWD/src/lib/japanese \

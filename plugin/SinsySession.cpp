@@ -18,6 +18,15 @@ struct SinsySession::Impl
     typedef std::multimap<tick_t, event_t> event_map_t;
 
 public:
+    //!
+    //! \brief Impl     Create first session.
+    //! \param provider
+    //! \param sample_rate
+    //! \param default_tempo
+    //! \param voices
+    //! \param language
+    //! \param dictionary_path
+    //!
     Impl(cadencii::singing::IScoreProvider * provider,
          int sample_rate,
          double default_tempo,
@@ -30,14 +39,25 @@ public:
         , sample_rate_(sample_rate)
         , provider_(provider)
         , session_samples_(0)
+        , total_taken_samples_(0)
     {
         using namespace cadencii::singing;
+
+        engine_.load(voices_);
 
         event_map_t empty;
         event_map_t score_source = takeEvents(provider, empty, default_tempo);
         initWithEvents(score_source);
     }
 
+    //!
+    //! \brief Impl     Initialize not-first session.
+    //! \param provider
+    //! \param sample_rate
+    //! \param language
+    //! \param dictionary_path
+    //! \param voices
+    //!
     Impl(cadencii::singing::IScoreProvider * provider,
          int sample_rate,
          std::string const& language,
@@ -49,6 +69,7 @@ public:
         , sample_rate_(sample_rate)
         , provider_(provider)
         , session_samples_(0)
+        , total_taken_samples_(0)
     {
         engine_.load(voices_);
     }
@@ -71,6 +92,8 @@ public:
 
     void doSynthesize()
     {
+        synthesized_samples_ = 0;
+
         sinsy::Converter converter;
         converter.setLanguages(language_, dictionary_path_);
 
@@ -83,7 +106,7 @@ public:
         HTS_Engine_set_sampling_frequency(&engine_.engine, sample_rate_);
 
         if (HTS_Engine_get_nvoices(&engine_.engine) == 0 || label.size() == 0) {
-           return;
+            return;
         }
 
         HTS_Engine_set_audio_buff_size(&engine_.engine, 0);
@@ -93,11 +116,10 @@ public:
         synthesized_samples_ = HTS_Engine_get_nsamples(&engine_.engine);
     }
 
-    void doTakeSynthesizeResult(std::vector<double> & buffer, size_t offset, size_t length)
+    void doTakeSynthesizeResult(std::vector<double> & buffer, size_t length)
     {
-        size_t const to = offset + length;
         buffer.resize(length);
-        size_t index = offset;
+        size_t index = total_taken_samples_;
         for (size_t i = 0; i < length; ++i, ++index) {
             double x = (index < synthesized_samples_)
                 ? engine_.engine.gss.gspeech[index]
@@ -105,6 +127,7 @@ public:
             double const WAVEFORM_MAX_AMPLITUDE = 32768.0;
             buffer[i] = x / WAVEFORM_MAX_AMPLITUDE;
         }
+        total_taken_samples_ += length;
     }
 
     void doWriteScore(sinsy::IScoreWritable & w) const
@@ -115,6 +138,12 @@ public:
     size_t getSessionLength() const
     {
         return session_samples_;
+    }
+
+    size_t getRemainingSessionLength() const
+    {
+        assert(session_samples_ >= total_taken_samples_);
+        return session_samples_ - total_taken_samples_;
     }
 
 private:
@@ -421,6 +450,7 @@ private:
     double last_tempo_;
     size_t synthesized_samples_;
     size_t session_samples_;
+    size_t total_taken_samples_;
 
     static int const TICK_SCALE_ = 2;
     static int const STEP_NUM_ = 12;
@@ -434,7 +464,7 @@ SinsySession::SinsySession(
         std::vector<std::string> const& voices,
         std::string const& language,
         std::string const& dictionary_path)
-    : impl_(std::make_shared<Impl>(provider, sample_rate, default_tempo, voices, language, dictionary_path))
+    : impl_(new Impl(provider, sample_rate, default_tempo, voices, language, dictionary_path))
 {}
 
 
@@ -465,9 +495,9 @@ void SinsySession::synthesize()
 }
 
 
-void SinsySession::takeSynthesizeResult(std::vector<double> & buffer, size_t offset, size_t length)
+void SinsySession::takeSynthesizeResult(std::vector<double> & buffer, size_t length)
 {
-    impl_->doTakeSynthesizeResult(buffer, offset, length);
+    impl_->doTakeSynthesizeResult(buffer, length);
 }
 
 
@@ -480,6 +510,11 @@ void SinsySession::writeScore(sinsy::IScoreWritable &w) const
 size_t SinsySession::getSessionLength() const
 {
     return impl_->getSessionLength();
+}
+
+size_t SinsySession::getRemainingSessionLength() const
+{
+    return impl_->getRemainingSessionLength();
 }
 
 }
