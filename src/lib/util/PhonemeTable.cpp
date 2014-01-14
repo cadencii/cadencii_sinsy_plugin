@@ -39,7 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#include <fstream>
 #include "PhonemeTable.h"
 #include "StringTokenizer.h"
 #include "util_log.h"
@@ -151,32 +150,26 @@ void PhonemeTable::clear()
 }
 
 /*!
- read from file
+ read from input stream
 
- @param fname phoneme table file path
+ @param stream stream to be read
  @param return true if success
  */
-bool PhonemeTable::read(const std::string& fname)
+bool PhonemeTable::read(std::istream & stream)
 {
-   std::ifstream ifs(fname.c_str());
-   if (!ifs) {
-      ERR_MSG("Cannot open phoneme table file : " << fname);
-      return false;
-   }
-
    clear();
 
    std::string buffer;
 
-   while (!ifs.eof()) {
-      std::getline(ifs, buffer);
+   while (!stream.eof()) {
+      std::getline(stream, buffer);
       StringTokenizer st(buffer, SPACE_STR);
 
       size_t sz(st.size());
       if (0 == sz) {
          continue;
       } else if (1 == sz) {
-         ERR_MSG("Wrong phoneme table (value is needed after key) : " << fname);
+         ERR_MSG("Wrong phoneme table (value is needed after key)");
          return false;
       }
       PhonemeList* pl(new PhonemeList);
@@ -185,7 +178,7 @@ bool PhonemeTable::read(const std::string& fname)
          pl->push_back(st.at(i));
       }
       if (false == convertTable.insert(std::make_pair(st.at(0), pl)).second) {
-         ERR_MSG("Wrong phoneme table (some syllables have same name : " << st.at(0) << ") : " << fname);
+         ERR_MSG("Wrong phoneme table (some syllables have same name : " << st.at(0) << ")");
          delete pl;
          return false;
       }

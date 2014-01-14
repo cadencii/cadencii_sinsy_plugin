@@ -78,20 +78,14 @@ void Configurations::clear()
 /*!
  read configurations from file
  */
-bool Configurations::read(const std::string& fpath)
+bool Configurations::read(std::istream & stream)
 {
-   std::ifstream ifs(fpath.c_str());
-   if (!ifs) {
-      ERR_MSG("Cannot open config file : " << fpath);
-      return false;
-   }
-
    clear();
 
    std::string buffer;
 
-   while (!ifs.eof()) {
-      std::getline(ifs, buffer);
+   while (!stream.eof()) {
+      std::getline(stream, buffer);
 
       // remove comments
       size_t idx = buffer.find("#");
@@ -104,7 +98,7 @@ bool Configurations::read(const std::string& fpath)
       if (0 == sz) {
          continue;
       } else if (2 != st.size()) {
-         ERR_MSG("Syntax error : " << fpath);
+         ERR_MSG("Syntax error");
          return false;
       }
 
@@ -113,7 +107,7 @@ bool Configurations::read(const std::string& fpath)
       std::string value(st.at(1));
       cutBlanks(value);
       if (key.empty() || value.empty()) {
-         ERR_MSG("Syntax error : " << fpath);
+         ERR_MSG("Syntax error");
          return false;
       }
 
@@ -123,7 +117,7 @@ bool Configurations::read(const std::string& fpath)
             value = value.substr(1, value.size() - 2);
             cutBlanks(value);
             if (value.empty()) {
-               ERR_MSG("Syntax error : " << fpath);
+               ERR_MSG("Syntax error");
                return false;
             }
          }

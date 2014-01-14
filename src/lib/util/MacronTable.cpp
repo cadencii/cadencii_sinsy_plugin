@@ -103,27 +103,21 @@ void MacronTable::clear()
  @param fname phoneme table file path
  @param return true if success
  */
-bool MacronTable::read(const std::string& fname)
+bool MacronTable::read(std::istream & stream)
 {
-   std::ifstream ifs(fname.c_str());
-   if (!ifs) {
-      WARN_MSG("Cannot open macron table file : " << fname);
-      return true;
-   }
-
    clear();
 
    std::string buffer;
 
-   while (!ifs.eof()) {
-      std::getline(ifs, buffer);
+   while (!stream.eof()) {
+      std::getline(stream, buffer);
       StringTokenizer st(buffer, SPACE_STR);
 
       size_t sz(st.size());
       if (0 == sz) {
          continue;
       } else if (3 != sz) {
-         ERR_MSG("Wrong macron table (" << buffer << ") : " << fname);
+         ERR_MSG("Wrong macron table (" << buffer << ")");
          return false;
       }
 
@@ -137,7 +131,7 @@ bool MacronTable::read(const std::string& fname)
       extractPhonemeList(st.at(2), result->backward);
 
       if (false == convertTable.insert(std::make_pair(pl, result)).second) {
-         ERR_MSG("Wrong macron table (There is a duplication : " << st.at(0) << ") : " << fname);
+         ERR_MSG("Wrong macron table (There is a duplication : " << st.at(0) << ")");
          delete result;
          return false;
       }

@@ -102,8 +102,8 @@ public:
    //! clear
    void clear();
 
-   //! read from file
-   bool read(const std::string& fname);
+   //! read from stream
+   bool read(std::istream & stream);
 
    //! find from table
    Result find(const std::string& syllable) const;

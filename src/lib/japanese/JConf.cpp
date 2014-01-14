@@ -43,6 +43,7 @@
 #include <limits>
 #include <deque>
 #include <vector>
+#include <fstream>
 #include "util_log.h"
 #include "util_string.h"
 #include "util_converter.h"
@@ -434,16 +435,21 @@ JConf::~JConf()
  */
 bool JConf::read(const std::string& table, const std::string& conf, const std::string& macron)
 {
-   if (!phonemeTable.read(table)) {
+   std::ifstream table_stream(table.c_str());
+   if (!phonemeTable.read(table_stream)) {
       ERR_MSG("Cannot read phoneme table file : " << table);
       return false;
    }
-   if (!config.read(conf)) {
+
+   std::ifstream conf_stream(conf.c_str());
+   if (!config.read(conf_stream)) {
       ERR_MSG("Cannot read config file : " << conf);
       phonemeTable.clear();
       return false;
    }
-   if (!macronTable.read(macron)) {
+
+   std::ifstream macron_stream(macron.c_str());
+   if (!macronTable.read(macron_stream)) {
       ERR_MSG("Cannot read macron table file : " << macron);
       macronTable.clear();
       return false;

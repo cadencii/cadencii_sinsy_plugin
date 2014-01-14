@@ -63,8 +63,8 @@ public:
    //! clear
    void clear();
 
-   //! read configurations from file
-   bool read(const std::string& fpath);
+   //! read configurations from stream
+   bool read(std::istream & fpath);
 
    //! get
    template<class T> T get(const std::string&, const T&) const;

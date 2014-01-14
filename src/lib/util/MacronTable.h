@@ -63,8 +63,8 @@ public:
    //! clear
    void clear();
 
-   //! read from file
-   bool read(const std::string& fname);
+   //! read from stream
+   bool read(std::istream & stream);
 
    //! divide phoneme set
    bool divide(const PhonemeList& src, PhonemeList& dst1, PhonemeList& dst2) const;
