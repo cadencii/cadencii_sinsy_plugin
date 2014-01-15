@@ -135,47 +135,47 @@ cadencii_sinsy_plugin_test_SOURCES = \
 	$(abs_srcdir)/../src/lib/xml/XmlWriter.cpp \
 	$(abs_srcdir)/../src/lib/xml/XmlWriter.h \
 	$(abs_srcdir)/../src/lib/xml/xml_tags.h \
-	$(abs_srcdir)/../src/dic/japanese.euc_jp.conf.cpp \
-	$(abs_srcdir)/../src/dic/japanese.euc_jp.table.cpp \
-	$(abs_srcdir)/../src/dic/japanese.macron.cpp \
-	$(abs_srcdir)/../src/dic/japanese.shift_jis.conf.cpp \
-	$(abs_srcdir)/../src/dic/japanese.shift_jis.table.cpp \
-	$(abs_srcdir)/../src/dic/japanese.utf_8.conf.cpp \
-	$(abs_srcdir)/../src/dic/japanese.utf_8.table.cpp
+	$(abs_srcdir)/../src/dic/japanese.euc_jp.conf.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.euc_jp.table.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.macron.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.shift_jis.conf.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.shift_jis.table.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.utf_8.conf.res.cpp \
+	$(abs_srcdir)/../src/dic/japanese.utf_8.table.res.cpp
 
-$(abs_srcdir)/../src/dic/japanese.euc_jp.conf.cpp: $(abs_srcdir)/../src/dic/japanese.euc_jp.conf
+$(abs_srcdir)/../src/dic/japanese.euc_jp.conf.res.cpp: $(abs_srcdir)/../src/dic/japanese.euc_jp.conf
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.euc_jp.table.cpp: $(abs_srcdir)/../src/dic/japanese.euc_jp.table
+$(abs_srcdir)/../src/dic/japanese.euc_jp.table.res.cpp: $(abs_srcdir)/../src/dic/japanese.euc_jp.table
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.macron.cpp: $(abs_srcdir)/../src/dic/japanese.macron
+$(abs_srcdir)/../src/dic/japanese.macron.res.cpp: $(abs_srcdir)/../src/dic/japanese.macron
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.shift_jis.conf.cpp: $(abs_srcdir)/../src/dic/japanese.shift_jis.conf
+$(abs_srcdir)/../src/dic/japanese.shift_jis.conf.res.cpp: $(abs_srcdir)/../src/dic/japanese.shift_jis.conf
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.shift_jis.table.cpp: $(abs_srcdir)/../src/dic/japanese.shift_jis.table
+$(abs_srcdir)/../src/dic/japanese.shift_jis.table.res.cpp: $(abs_srcdir)/../src/dic/japanese.shift_jis.table
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.utf_8.conf.cpp: $(abs_srcdir)/../src/dic/japanese.utf_8.conf
+$(abs_srcdir)/../src/dic/japanese.utf_8.conf.res.cpp: $(abs_srcdir)/../src/dic/japanese.utf_8.conf
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
-$(abs_srcdir)/../src/dic/japanese.utf_8.table.cpp: $(abs_srcdir)/../src/dic/japanese.utf_8.table
+$(abs_srcdir)/../src/dic/japanese.utf_8.table.res.cpp: $(abs_srcdir)/../src/dic/japanese.utf_8.table
 	cd $(abs_srcdir)/../tool && make
 	cd $(abs_srcdir)/../src/dic && $(abs_srcdir)/../tool/file_to_source $^ $@
 
 clean-generic:
-	rm -f $(abs_srcdir)/../src/dic/japanese.euc_jp.conf.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.euc_jp.table.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.macron.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.shift_jis.conf.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.shift_jis.table.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.utf_8.conf.cpp
-	rm -f $(abs_srcdir)/../src/dic/japanese.utf_8.table.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.euc_jp.conf.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.euc_jp.table.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.macron.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.shift_jis.conf.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.shift_jis.table.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.utf_8.conf.res.cpp
+	rm -f $(abs_srcdir)/../src/dic/japanese.utf_8.table.res.cpp
