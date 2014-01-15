@@ -27,6 +27,8 @@ cadencii_sinsy_plugin_test_SOURCES = \
     $(abs_srcdir)/../plugin/SinsySession.hpp \
     $(abs_srcdir)/../plugin/SinsySingingSynthesizer.cpp \
     $(abs_srcdir)/../plugin/SinsySingingSynthesizer.hpp \
+    $(abs_srcdir)/../plugin/DictionaryLoader.cpp \
+    $(abs_srcdir)/../plugin/DictionaryLoader.hpp \
 	$(abs_srcdir)/../src/lib/Sinsy.cpp \
 	$(abs_srcdir)/../src/lib/converter/ConfGroup.cpp \
 	$(abs_srcdir)/../src/lib/converter/ConfGroup.h \
