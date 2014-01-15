@@ -1,9 +1,8 @@
 #include <cassert>
 #include <algorithm>
-#include <cadencii-nt/vsq/NoteNumberUtil.hpp>
-#include "../src/lib/label/LabelMaker.h"
-#include "../src/lib/label/LabelStrings.h"
-#include "../src/lib/score/util_score.h"
+#include "lib/label/LabelMaker.h"
+#include "lib/label/LabelStrings.h"
+#include "lib/score/util_score.h"
 #include "SinsySession.hpp"
 #include "ConverterFactory.hpp"
 
@@ -195,7 +194,7 @@ private:
         int const note_number = source->noteNumber();
         note.setRest(false);
         note.setLyric(source->lyric());
-        int const octave = VSQ_NS::NoteNumberUtil::getNoteOctave(note_number) + 1;
+        int const octave = (note_number - (note_number % 12)) / 12 - 1;
         int const step = (note_number % STEP_NUM_ + STEP_NUM_) % STEP_NUM_;
         sinsy::Pitch pitch(step, octave);
         note.setPitch(pitch);
