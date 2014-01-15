@@ -1,7 +1,7 @@
 #include <memory>
 #include <map>
 #include <vector>
-#include <cadencii-nt/singing/cadencii_singing_plugin_sdk.h>
+#include "cadencii_synth_api.h"
 
 #include "lib/temporary/ScoreDoctor.h"
 #include "lib/hts_engine_API/HtsEngine.h"

@@ -1,6 +1,6 @@
 #include <vector>
-#include <cadencii-nt/singing/cadencii_singing_plugin_sdk.h>
-#include "../lib/label/LabelMaker.h"
+#include "cadencii_synth_api.h"
+#include "lib/label/LabelMaker.h"
 #include "./SinsySession.hpp"
 
 namespace cadencii {
