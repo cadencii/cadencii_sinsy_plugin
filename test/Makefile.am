@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = \
-    -I $(abs_srcdir)/../refs/cadencii_synth_api \
+    -I $(abs_srcdir)/../refs/cadencii_synth_api/include \
     -I $(abs_srcdir)/../src \
     -I $(abs_srcdir)/../src/include \
     -I $(abs_srcdir)/../src/lib/converter \

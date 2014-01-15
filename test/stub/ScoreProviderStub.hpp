@@ -1,4 +1,4 @@
-#include "cadencii_synth_api.h"
+#include <cadencii/singing/SynthPluginApi.hpp>
 
 class ScoreProviderStub : public cadencii::singing::IScoreProvider
 {

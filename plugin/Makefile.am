@@ -1,5 +1,5 @@
 AM_CPPFLAGS = \
-    -I $(abs_srcdir)/../refs/cadencii_synth_api \
+    -I $(abs_srcdir)/../refs/cadencii_synth_api/include \
     -I $(abs_srcdir)/../src \
     -I $(abs_srcdir)/../src/lib/score \
     -I $(abs_srcdir)/../src/lib/util \

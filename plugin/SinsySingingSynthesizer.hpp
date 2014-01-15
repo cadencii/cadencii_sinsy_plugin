@@ -1,5 +1,5 @@
 #include <vector>
-#include "cadencii_synth_api.h"
+#include <cadencii/singing/SynthPluginApi.hpp>
 #include "lib/label/LabelMaker.h"
 #include "./SinsySession.hpp"
 
