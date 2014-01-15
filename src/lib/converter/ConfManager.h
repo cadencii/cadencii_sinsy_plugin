@@ -67,6 +67,15 @@ public:
    //! set default confs
    void setDefaultConfs(ConfGroup& confs) const;
 
+   void setJapaneseUTF8Conf(JConf * conf);
+   void setJapaneseShiftJISConf(JConf * conf);
+   void setJapaneseEUCJPConf(JConf * conf);
+
+public:
+   static std::string const UTF_8_STRS;
+   static std::string const SHIFT_JIS_STRS;
+   static std::string const EUC_JP_STRS;
+
 private:
    //! copy constructor (donot use)
    ConfManager(const ConfManager&);

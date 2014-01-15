@@ -44,6 +44,7 @@
 
 #include <string>
 #include <set>
+#include <iostream>
 #include "IConf.h"
 #include "Configurations.h"
 #include "PhonemeTable.h"
@@ -63,7 +64,7 @@ public:
    virtual ~JConf();
 
    //! read phoneme table and config from files
-   bool read(const std::string& table, const std::string& conf, const std::string& macron);
+   bool read(std::istream & table, std::istream & conf, std::istream & macron);
 
    //! convert lyrics to phonemes
    virtual bool convert(const std::string& enc, ConvertableList::iterator begin, ConvertableList::iterator end) const;

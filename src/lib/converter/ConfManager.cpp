@@ -41,6 +41,7 @@
 
 #include <stdexcept>
 #include <algorithm>
+#include <fstream>
 #include "util_log.h"
 #include "StringTokenizer.h"
 #include "Deleter.h"
@@ -53,11 +54,12 @@ using namespace sinsy;
 
 namespace
 {
-const std::string UTF_8_STRS("utf_8, utf8, utf-8");
-const std::string SHIFT_JIS_STRS("shift_jis, shift-jis, sjis");
-const std::string EUC_JP_STRS("euc-jp, euc_jp, eucjp");
 const std::string CODE_SEPARATOR = "|";
 };
+
+std::string const ConfManager::UTF_8_STRS = std::string("utf_8, utf8, utf-8");
+std::string const ConfManager::SHIFT_JIS_STRS = std::string("shift_jis, shift-jis, sjis");
+std::string const ConfManager::EUC_JP_STRS = std::string("euc-jp, euc_jp, eucjp");
 
 /*!
  constructor
@@ -105,6 +107,27 @@ void ConfManager::addJConf(IConf* conf)
    jConfs->add(conf);
 }
 
+void ConfManager::setJapaneseUTF8Conf(JConf * conf)
+{
+   uJConf = conf;
+   addJConf(uJConf);
+   deleteList.push_back(uJConf);
+}
+
+void ConfManager::setJapaneseShiftJISConf(JConf * conf)
+{
+   sJConf = conf;
+   addJConf(sJConf);
+   deleteList.push_back(sJConf);
+}
+
+void ConfManager::setJapaneseEUCJPConf(JConf * conf)
+{
+   eJConf = conf;
+   addJConf(eJConf);
+   deleteList.push_back(eJConf);
+}
+
 /*!
  set languages
  (Currently, you can set only Japanese (j))
@@ -126,36 +149,43 @@ bool ConfManager::setLanguages(const std::string& languages, const std::string& 
          const std::string CONF_EUC_JP(dirPath + "/japanese.euc_jp.conf");
          const std::string MACRON_TABLE(dirPath + "/japanese.macron");
 
-         uJConf = new JConf(UTF_8_STRS);
-         sJConf = new JConf(SHIFT_JIS_STRS);
-         eJConf = new JConf(EUC_JP_STRS);
-
          // utf-8
-         if (uJConf->read(TABLE_UTF_8, CONF_UTF_8, MACRON_TABLE)) {
-            addJConf(uJConf);
-            deleteList.push_back(uJConf);
-         } else {
-            WARN_MSG("Cannot read Japanese table or config or macron file : " << TABLE_UTF_8 << ", " << CONF_UTF_8);
-            delete uJConf;
-            uJConf = NULL;
+         {
+            std::unique_ptr<JConf> jconf(new JConf(UTF_8_STRS));
+            std::ifstream table(TABLE_UTF_8.c_str());
+            std::ifstream conf(CONF_UTF_8.c_str());
+            std::ifstream macron(MACRON_TABLE.c_str());
+            if (jconf->read(table, conf, macron)) {
+               setJapaneseUTF8Conf(jconf.release());
+            } else {
+               WARN_MSG("Cannot read Japanese table or config or macron file : " << TABLE_UTF_8 << ", " << CONF_UTF_8);
+            }
          }
+
          // shift_jis
-         if (sJConf->read(TABLE_SHIFT_JIS, CONF_SHIFT_JIS, MACRON_TABLE)) {
-            addJConf(sJConf);
-            deleteList.push_back(sJConf);
-         } else {
-            WARN_MSG("Cannot read Japanese table or config or macron file :" << TABLE_SHIFT_JIS << ", " << CONF_SHIFT_JIS);
-            delete sJConf;
-            sJConf = NULL;
+         {
+            std::unique_ptr<JConf> jconf(new JConf(SHIFT_JIS_STRS));
+            std::ifstream table(TABLE_SHIFT_JIS.c_str());
+            std::ifstream conf(CONF_SHIFT_JIS.c_str());
+            std::ifstream macron(MACRON_TABLE.c_str());
+            if (jconf->read(table, conf, macron)) {
+               setJapaneseShiftJISConf(jconf.release());
+            } else {
+               WARN_MSG("Cannot read Japanese table or config or macron file :" << TABLE_SHIFT_JIS << ", " << CONF_SHIFT_JIS);
+            }
          }
+
          // euc-jp
-         if (eJConf->read(TABLE_EUC_JP, CONF_EUC_JP, MACRON_TABLE)) {
-            addJConf(eJConf);
-            deleteList.push_back(eJConf);
-         } else {
-            WARN_MSG("Cannot read Japanese table or config or macron file : " << TABLE_EUC_JP << ", " << CONF_EUC_JP);
-            delete eJConf;
-            eJConf = NULL;
+         {
+            std::unique_ptr<JConf> jconf(new JConf(EUC_JP_STRS));
+            std::ifstream table(TABLE_EUC_JP.c_str());
+            std::ifstream conf(CONF_EUC_JP.c_str());
+            std::ifstream macron(MACRON_TABLE.c_str());
+            if (jconf->read(table, conf, macron)) {
+               setJapaneseEUCJPConf(jconf.release());
+            } else {
+               WARN_MSG("Cannot read Japanese table or config or macron file : " << TABLE_EUC_JP << ", " << CONF_EUC_JP);
+            }
          }
          break;
       }

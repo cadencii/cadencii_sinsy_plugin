@@ -4,7 +4,35 @@
 #include "../src/lib/label/LabelMaker.h"
 #include "../src/lib/label/LabelStrings.h"
 #include "../src/lib/score/util_score.h"
+#include "../src/lib/japanese/JConf.h"
 #include "SinsySession.hpp"
+
+extern "C" char const* binary_japanese_euc_jp_conf_start;
+extern "C" char const* binary_japanese_euc_jp_conf_end;
+extern "C" char const* binary_japanese_euc_jp_table_start;
+extern "C" char const* binary_japanese_euc_jp_table_end;
+extern "C" char const* binary_japanese_macron_start;
+extern "C" char const* binary_japanese_macron_end;
+extern "C" char const* binary_japanese_shift_jis_conf_start;
+extern "C" char const* binary_japanese_shift_jis_conf_end;
+extern "C" char const* binary_japanese_shift_jis_table_start;
+extern "C" char const* binary_japanese_shift_jis_table_end;
+extern "C" char const* binary_japanese_utf_8_conf_start;
+extern "C" char const* binary_japanese_utf_8_conf_end;
+extern "C" char const* binary_japanese_utf_8_table_start;
+extern "C" char const* binary_japanese_utf_8_table_end;
+extern "C" char const* binary_japanese_macron_start;
+extern "C" char const* binary_japanese_macron_end;
+
+static void init_stream(std::stringstream & stream, char const* from, char const* to)
+{
+    std::stringstream temp;
+    size_t const count = (to - from) / sizeof(char);
+    temp.write(from, count);
+    temp.flush();
+    temp.seekg(0);
+    stream.swap(temp);
+}
 
 namespace cadencii {
 namespace plugin {
@@ -92,10 +120,47 @@ public:
 
     void doSynthesize()
     {
+        using namespace sinsy;
+
         synthesized_samples_ = 0;
 
-        sinsy::Converter converter;
-        converter.setLanguages(language_, dictionary_path_);
+        Converter converter;
+        {
+            // setup Japanese UTF-8 conf
+            std::unique_ptr<JConf> jconf(new JConf(ConfManager::UTF_8_STRS));
+            std::stringstream table;
+            init_stream(table, binary_japanese_utf_8_table_start, binary_japanese_utf_8_table_end);
+            std::stringstream conf;
+            init_stream(conf, binary_japanese_utf_8_conf_start, binary_japanese_utf_8_conf_end);
+            std::stringstream macron;
+            init_stream(macron, binary_japanese_macron_start, binary_japanese_macron_end);
+            jconf->read(table, conf, macron);
+            converter.setJapaneseUTF8Conf(jconf.release());
+        }
+        {
+            // setup Japanese Shift_JIS conf
+            std::unique_ptr<JConf> jconf(new JConf(ConfManager::SHIFT_JIS_STRS));
+            std::stringstream table;
+            init_stream(table, binary_japanese_shift_jis_table_start, binary_japanese_shift_jis_table_end);
+            std::stringstream conf;
+            init_stream(conf, binary_japanese_shift_jis_conf_start, binary_japanese_shift_jis_conf_end);
+            std::stringstream macron;
+            init_stream(macron, binary_japanese_macron_start, binary_japanese_macron_end);
+            jconf->read(table, conf, macron);
+            converter.setJapaneseShiftJISConf(jconf.release());
+        }
+        {
+            // setup Japanese EUC-JP conf
+            std::unique_ptr<JConf> jconf(new JConf(ConfManager::EUC_JP_STRS));
+            std::stringstream table;
+            init_stream(table, binary_japanese_euc_jp_table_start, binary_japanese_euc_jp_table_end);
+            std::stringstream conf;
+            init_stream(conf, binary_japanese_euc_jp_conf_start, binary_japanese_euc_jp_conf_end);
+            std::stringstream macron;
+            init_stream(macron, binary_japanese_macron_start, binary_japanese_macron_end);
+            jconf->read(table, conf, macron);
+            converter.setJapaneseEUCJPConf(jconf.release());
+        }
 
         sinsy::LabelMaker labelMaker(converter);
         labelMaker << score_;

@@ -169,3 +169,19 @@ bool Converter::convert(const std::string& enc, IConf::ConvertableList::iterator
 
    return true;
 }
+
+
+void Converter::setJapaneseUTF8Conf(JConf * conf)
+{
+   confManager.setJapaneseUTF8Conf(conf);
+}
+
+void Converter::setJapaneseShiftJISConf(JConf * conf)
+{
+   confManager.setJapaneseShiftJISConf(conf);
+}
+
+void Converter::setJapaneseEUCJPConf(JConf * conf)
+{
+   confManager.setJapaneseEUCJPConf(conf);
+}

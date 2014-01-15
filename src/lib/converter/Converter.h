@@ -70,6 +70,10 @@ public:
    //! convert
    virtual bool convert(const std::string& enc, IConf::ConvertableList::iterator begin, IConf::ConvertableList::iterator end) const;
 
+   void setJapaneseUTF8Conf(JConf * conf);
+   void setJapaneseShiftJISConf(JConf * conf);
+   void setJapaneseEUCJPConf(JConf * conf);
+
 private:
    //! copy constructor (donot use)
    Converter(const Converter&);
