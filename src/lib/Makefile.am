@@ -1,12 +1,12 @@
-INCLUDES = -I $(top_srcdir)/include \
-           -I converter \
-           -I hts_engine_API \
-           -I japanese \
-           -I label \
-           -I score \
-           -I temporary \
-           -I util \
-           -I xml \
+INCLUDES = -I $(abs_srcdir)/../include \
+           -I $(abs_srcdir)/converter \
+           -I $(abs_srcdir)/hts_engine_API \
+           -I $(abs_srcdir)/japanese \
+           -I $(abs_srcdir)/label \
+           -I $(abs_srcdir)/score \
+           -I $(abs_srcdir)/temporary \
+           -I $(abs_srcdir)/util \
+           -I $(abs_srcdir)/xml \
            -I @HTS_ENGINE_HEADER_DIR@
 
 lib_LIBRARIES = libSinsy.a
