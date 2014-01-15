@@ -9,10 +9,10 @@ class Converter;
 namespace cadencii {
 namespace plugin {
 
-class DictionaryLoader
+class ConverterFactory
 {
 public:
-	DictionaryLoader();
+	ConverterFactory();
 
 	std::shared_ptr<sinsy::Converter>
 	makeConverter();

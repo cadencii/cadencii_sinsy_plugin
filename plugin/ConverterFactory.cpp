@@ -1,5 +1,5 @@
 #include <cassert>
-#include "DictionaryLoader.hpp"
+#include "ConverterFactory.hpp"
 #include "../src/lib/japanese/JConf.h"
 #include "../src/lib/converter/Converter.h"
 
@@ -23,7 +23,7 @@ extern "C" char const* binary_japanese_macron_end;
 namespace cadencii {
 namespace plugin {
 
-struct DictionaryLoader::Impl
+struct ConverterFactory::Impl
 {
 public:
 	Impl()
@@ -100,13 +100,13 @@ private:
 	}
 };
 
-DictionaryLoader::DictionaryLoader()
+ConverterFactory::ConverterFactory()
 	: impl_(std::make_shared<Impl>())
 {}
 
 
 std::shared_ptr<sinsy::Converter>
-DictionaryLoader::makeConverter()
+ConverterFactory::makeConverter()
 {
 	return impl_->makeConverter();
 }

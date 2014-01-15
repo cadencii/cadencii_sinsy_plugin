@@ -5,7 +5,7 @@
 #include "../src/lib/label/LabelStrings.h"
 #include "../src/lib/score/util_score.h"
 #include "SinsySession.hpp"
-#include "DictionaryLoader.hpp"
+#include "ConverterFactory.hpp"
 
 namespace cadencii {
 namespace plugin {
@@ -97,8 +97,8 @@ public:
 
         synthesized_samples_ = 0;
 
-        DictionaryLoader loader;
-        std::shared_ptr<Converter> converter = loader.makeConverter();
+        ConverterFactory factory;
+        std::shared_ptr<Converter> converter = factory.makeConverter();
 
         sinsy::LabelMaker labelMaker(*converter.get());
         labelMaker << score_;

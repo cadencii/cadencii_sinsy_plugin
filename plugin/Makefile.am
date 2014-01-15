@@ -15,8 +15,8 @@ libcadencii_sinsy_plugin_la_SOURCES = \
     $(abs_srcdir)/SinsySession.hpp \
     $(abs_srcdir)/SinsySingingSynthesizer.cpp \
     $(abs_srcdir)/SinsySingingSynthesizer.hpp \
-    $(abs_srcdir)/DictionaryLoader.cpp \
-    $(abs_srcdir)/DictionaryLoader.hpp \
+    $(abs_srcdir)/ConverterFactory.cpp \
+    $(abs_srcdir)/ConverterFactory.hpp \
     $(abs_srcdir)/../src/dic/japanese.euc_jp.conf.cpp \
     $(abs_srcdir)/../src/dic/japanese.euc_jp.table.cpp \
     $(abs_srcdir)/../src/dic/japanese.macron.cpp \
