@@ -11,18 +11,14 @@ public:
     SinsySessionStub(cadencii::singing::IScoreProvider * provider,
                      int sample_rate,
                      double default_tempo,
-                     std::vector<std::string> const& voices,
-                     std::string const& language,
-                     std::string const& dictionary_path)
-        : SinsySession(provider, sample_rate, default_tempo, voices, language, dictionary_path)
+                     std::vector<std::string> const& voices)
+        : SinsySession(provider, sample_rate, default_tempo, voices)
     {}
 
     SinsySessionStub(cadencii::singing::IScoreProvider * provider,
                      int sample_rate,
-                     std::string const& language,
-                     std::string const& dictionary_path,
                      std::vector<std::string> const& voices)
-        : SinsySession(provider, sample_rate, language, dictionary_path, voices)
+        : SinsySession(provider, sample_rate, voices)
     {}
 
     void writeScore(sinsy::IScoreWritable & w) const override
@@ -35,8 +31,6 @@ public:
     {
         int const sample_rate = 44100;
         double const default_tempo = 120.0;
-        std::string language = "j";
-        std::string dictionary_path = "";
         std::vector<std::string> voices;
         voices.push_back("");
 
@@ -44,9 +38,7 @@ public:
         result.reset(new SinsySessionStub(provider,
                                           sample_rate,
                                           default_tempo,
-                                          voices,
-                                          language,
-                                          dictionary_path));
+                                          voices));
         return result;
     }
 

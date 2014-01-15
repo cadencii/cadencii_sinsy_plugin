@@ -15,9 +15,7 @@ public:
     SinsySession(cadencii::singing::IScoreProvider * provider,
                  int sample_rate,
                  double default_tempo,
-                 std::vector<std::string> const& voices,
-                 std::string const& language,
-                 std::string const& dictionary_path);
+                 std::vector<std::string> const& voices);
 
     virtual ~SinsySession();
 
@@ -41,8 +39,6 @@ public:
 protected:
     SinsySession(cadencii::singing::IScoreProvider * provider,
                  int sample_rate,
-                 std::string const& language,
-                 std::string const& dictionary_path,
                  std::vector<std::string> const& voices);
 
     virtual void writeScore(sinsy::IScoreWritable &) const;

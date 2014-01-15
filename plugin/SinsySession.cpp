@@ -30,12 +30,8 @@ public:
     Impl(cadencii::singing::IScoreProvider * provider,
          int sample_rate,
          double default_tempo,
-         std::vector<std::string> const& voices,
-         std::string const& language,
-         std::string const& dictionary_path)
-        : language_(language)
-        , dictionary_path_(dictionary_path)
-        , voices_(voices)
+         std::vector<std::string> const& voices)
+        : voices_(voices)
         , sample_rate_(sample_rate)
         , provider_(provider)
         , session_samples_(0)
@@ -60,12 +56,8 @@ public:
     //!
     Impl(cadencii::singing::IScoreProvider * provider,
          int sample_rate,
-         std::string const& language,
-         std::string const& dictionary_path,
          std::vector<std::string> const& voices)
-        : language_(language)
-        , dictionary_path_(dictionary_path)
-        , voices_(voices)
+        : voices_(voices)
         , sample_rate_(sample_rate)
         , provider_(provider)
         , session_samples_(0)
@@ -80,7 +72,7 @@ public:
     std::shared_ptr<SinsySession> doCreateNextSession()
     {
         std::shared_ptr<SinsySession> session;
-        session.reset(new SinsySession(provider_, sample_rate_, language_, dictionary_path_, voices_));
+        session.reset(new SinsySession(provider_, sample_rate_, voices_));
 
         event_map_t score_source = takeEvents(provider_,
                                               remaining_,
@@ -443,8 +435,6 @@ private:
 private:
     sinsy::ScoreDoctor score_;
     sinsy::HtsEngine engine_;
-    std::string const language_;
-    std::string const dictionary_path_;
     std::vector<std::string> const voices_;
     int const sample_rate_;
     event_map_t remaining_;
@@ -463,20 +453,16 @@ SinsySession::SinsySession(
         cadencii::singing::IScoreProvider * provider,
         int sample_rate,
         double default_tempo,
-        std::vector<std::string> const& voices,
-        std::string const& language,
-        std::string const& dictionary_path)
-    : impl_(new Impl(provider, sample_rate, default_tempo, voices, language, dictionary_path))
+        std::vector<std::string> const& voices)
+    : impl_(new Impl(provider, sample_rate, default_tempo, voices))
 {}
 
 
 SinsySession::SinsySession(
         cadencii::singing::IScoreProvider * provider,
         int sample_rate,
-        std::string const& language,
-        std::string const& dictionary_path,
         std::vector<std::string> const& voices)
-    : impl_(std::make_shared<Impl>(provider, sample_rate, language, dictionary_path, voices))
+    : impl_(std::make_shared<Impl>(provider, sample_rate, voices))
 {}
 
 

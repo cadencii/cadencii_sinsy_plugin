@@ -14,12 +14,9 @@ TEST(SinsySingingSynthesizer, synthesize)
     int const sample_rate = 44100;
     SinsySingingSynthesizer synth(sample_rate);
     synth.bind(provider);
-    synth.setConfig("com.github.cadencii.sinsy_plugin.language",
-                    "j");
-    synth.setConfig("com.github.cadencii.sinsy_plugin.dictionary",
-                    "../src/dic");
-    synth.setConfig("com.github.cadencii.sinsy_plugin.htvoice",
-                    "fixture/nitech_jp_song070_f001.htsvoice");
+    EXPECT_FALSE(synth.setConfig("unknown.config.key", "bla"));
+    EXPECT_TRUE(synth.setConfig("com.github.cadencii.sinsy_plugin.htvoice",
+                                "fixture/nitech_jp_song070_f001.htsvoice"));
     int const length = sample_rate * 6;
     std::shared_ptr<double> left;
     left.reset(new double[length]);
