@@ -4,3 +4,6 @@
 [submodule "refs/gtest"]
 	path = refs/gtest
 	url = https://github.com/kgcd/gtest.git
+[submodule "refs/cadencii_synth_api"]
+	path = refs/cadencii_synth_api
+	url = git@github.com:cadencii/cadencii_synth_api.git
