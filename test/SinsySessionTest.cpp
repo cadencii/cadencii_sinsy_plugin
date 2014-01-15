@@ -32,7 +32,7 @@ public:
         int const sample_rate = 44100;
         double const default_tempo = 120.0;
         std::vector<std::string> voices;
-        voices.push_back("");
+        voices.push_back("fixture/nitech_jp_song070_f001.htsvoice");
 
         std::shared_ptr<SinsySessionStub> result;
         result.reset(new SinsySessionStub(provider,
